@@ -1,0 +1,50 @@
+#!/usr/bin/env python
+
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
+
+# Process exposures into a roll-up file for one MJD
+
+import numpy as np
+import fitsio
+import argparse
+import lcoqa
+import os
+import sys
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Process guide images into one file",
+                                     usage="exposures_qa --mjd 12345 --telescope lco")
+    parser.add_argument("-m", "--mjd", type=np.int32,
+                        required=True, help="MJD to process")
+    parser.add_argument("-t", "--telescope", type=str,
+                        required=True,
+                        help="telescope guider images to process",
+                        choices=['lco', 'apo'])
+    args = parser.parse_args()
+
+    outdir = os.path.join(os.getenv('APOGEEQA_DATA'), args.telescope,
+                          str(args.mjd))
+    try:
+        os.makedirs(outdir)
+    except OSError:
+        if not os.path.isdir(outdir):
+            raise
+
+    gcamfile = os.path.join(outdir,
+                            'gcam-{mjd}.fits'.format(mjd=args.mjd))
+    try:
+        gcam = fitsio.read(gcamfile)
+    except:
+        print("No gcam file. Not analyzing exposures without guide camera data.")
+        sys.exit()
+
+    exposures = lcoqa.exposures(gcam=gcam,
+                                   mjd=args.mjd, telescope=args.telescope)
+
+    if(exposures is not None):
+        outfile = os.path.join(outdir,
+                               'exposures-{mjd}.fits'.format(mjd=args.mjd))
+        fitsio.write(outfile, exposures, clobber=True)

@@ -1,0 +1,55 @@
+#!/usr/bin/env python
+
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
+
+# Create html file summarizing APOGEEQA
+
+import numpy as np
+import fitsio
+import argparse
+import lcoqa
+import os
+import sys
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Make signal QA plots",
+                                     usage="lcoqa_html --mjd 12345 --telescope lco")
+    parser.add_argument("-m", "--mjd", type=np.int32,
+                        required=True, help="MJD to process")
+    parser.add_argument("-t", "--telescope", type=str,
+                        required=True,
+                        help="telescope guider images to process",
+                        choices=['lco', 'apo'])
+    args = parser.parse_args()
+
+    fitsdir = os.path.join(os.getenv('APOGEEQA_DATA'), args.telescope,
+                           str(args.mjd))
+
+    exposurefile = os.path.join(fitsdir,
+                                'exposures-{mjd}.fits'.format(mjd=args.mjd))
+    try:
+        exposures = fitsio.read(exposurefile)
+    except:
+        print("No exposures file. Cannot make HTML without data.")
+        sys.exit(1)
+
+    htmldir = os.path.join(os.getenv('APOGEEQA_DATA'), args.telescope)
+    try:
+        os.makedirs(htmldir)
+    except OSError:
+        if not os.path.isdir(htmldir):
+            raise
+
+    htmlfile = os.path.join(htmldir,
+                            'lcoqa-summary-{mjd}.html'.format(mjd=args.mjd))
+
+    summary = lcoqa.html.Summary(htmlfile=htmlfile, mjd=args.mjd)
+
+    isort = np.argsort(exposures['expno'])
+    for exposure in exposures[isort]:
+        summary.add_exposure(exposure)
+
+    summary.write()

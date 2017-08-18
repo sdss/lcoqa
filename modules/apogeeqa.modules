@@ -1,0 +1,35 @@
+#%Module1.0
+#
+proc ModulesHelp { } {
+    global product version
+    puts stderr "This module adds $product/$version to your environment."
+}
+#
+# Define variables
+#
+set product apogeeqa 
+set version local
+#
+# This prevents other versions of this product being loaded simultaneously
+#
+conflict $product
+#
+# module-whatis
+#
+module-whatis "Sets up $product/$version in your environment."
+#
+# Load modules
+#
+#module load python/2.7.1
+module load sdss_access
+#
+# Set environment
+#
+set PRODUCT_DIR /uufs/chpc.utah.edu/common/home/u0919333/products/$product/$version
+setenv APOGEEQA_DIR $PRODUCT_DIR
+setenv APOGEEQA_DATA /uufs/chpc.utah.edu/common/home/u0919333/projects/apogeeqa
+prepend-path PATH $PRODUCT_DIR/bin
+prepend-path IDL_PATH +$PRODUCT_DIR/pro
+prepend-path PYTHONPATH $PRODUCT_DIR/python
+prepend-path LD_LIBRARY_PATH $PRODUCT_DIR/lib
+

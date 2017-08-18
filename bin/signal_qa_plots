@@ -1,0 +1,73 @@
+#!/usr/bin/env python
+
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
+
+# Process exposures into a roll-up file for one MJD
+
+import numpy as np
+import fitsio
+import argparse
+import lcoqa
+import os
+import sys
+import collections
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Make signal QA plots",
+                                     usage="signal_qa_plots --mjd 12345 --telescope lco")
+    parser.add_argument("-m", "--mjd", type=np.int32,
+                        required=True, help="MJD to process")
+    parser.add_argument("-t", "--telescope", type=str,
+                        required=True,
+                        help="telescope guider images to process",
+                        choices=['lco', 'apo'])
+    args = parser.parse_args()
+
+    fitsdir = os.path.join(os.getenv('APOGEEQA_DATA'), args.telescope,
+                           str(args.mjd))
+
+    exposurefile = os.path.join(fitsdir,
+                                'exposures-{mjd}.fits'.format(mjd=args.mjd))
+    try:
+        exposures = fitsio.read(exposurefile)
+    except:
+        print("No exposures file. Cannot plot without data.")
+        sys.exit(1)
+
+    plotdir = os.path.join(fitsdir, 'plots')
+    try:
+        os.makedirs(plotdir)
+    except OSError:
+        if not os.path.isdir(plotdir):
+            raise
+
+    for exposure in exposures:
+        signalbase = 'signal-{mjd}-{expno}.fits'
+        signalbase = signalbase.format(mjd=args.mjd, expno=exposure['expno'])
+        signalfile = os.path.join(fitsdir, signalbase)
+        try:
+            signal = fitsio.read(signalfile, ext=1)
+            signal_fibers = fitsio.read(signalfile, ext=2)
+        except:
+            print("No signal file: {signalfile}.".format(signalfile=signalfile))
+            continue
+
+        template = '{mjd}-{plate}-{expno}.png'
+        template = template.format(mjd=exposure['mjd'],
+                                   plate=exposure['plateid'],
+                                   expno=exposure['expno'])
+
+        plots = collections.OrderedDict()
+        plots['signal'] = lcoqa.plot.signal
+        plots['sn2'] = lcoqa.plot.sn2
+        plots['signal-focal'] = lcoqa.plot.signal_focal
+        plots['sn2-focal'] = lcoqa.plot.sn2_focal
+
+        for name, func in plots.iteritems():
+            outbase = "{name}-{template}".format(name=name, template=template)
+            outfile = os.path.join(plotdir, outbase)
+            func(outfile, exposure=exposure, signal=signal,
+                 signal_fibers=signal_fibers)

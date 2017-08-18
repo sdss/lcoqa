@@ -1,0 +1,69 @@
+#!/usr/bin/env python
+
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
+
+# Process exposures into a roll-up file for one MJD
+
+import numpy as np
+import fitsio
+import argparse
+import lcoqa
+import os
+import sys
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Process guide images into one file",
+                                     usage="exposures_qa_plots --mjd 12345 --telescope lco")
+    parser.add_argument("-m", "--mjd", type=np.int32,
+                        required=True, help="MJD to process")
+    parser.add_argument("-t", "--telescope", type=str,
+                        required=True,
+                        help="telescope guider images to process",
+                        choices=['lco', 'apo'])
+    args = parser.parse_args()
+
+    fitsdir = os.path.join(os.getenv('APOGEEQA_DATA'), args.telescope,
+                           str(args.mjd))
+    try:
+        os.makedirs(fitsdir)
+    except OSError:
+        if not os.path.isdir(fitsdir):
+            raise
+
+    gcamfile = os.path.join(fitsdir,
+                            'gcam-{mjd}.fits'.format(mjd=args.mjd))
+    try:
+        gcam = fitsio.read(gcamfile)
+    except:
+        print("No gcam file. Cannot plot exposures without guide camera data.")
+        sys.exit(1)
+
+    exposurefile = os.path.join(fitsdir,
+                                'exposures-{mjd}.fits'.format(mjd=args.mjd))
+    try:
+        exposures = fitsio.read(exposurefile)
+    except:
+        print("No exposures file. Cannot plot exposures without data.")
+        sys.exit(1)
+
+    plotdir = os.path.join(fitsdir, 'plots')
+    try:
+        os.makedirs(plotdir)
+    except OSError:
+        if not os.path.isdir(plotdir):
+            raise
+
+    for exposure in exposures:
+        template = '{mjd}-{plate}-{expno}.png'
+        template = template.format(mjd=exposure['mjd'],
+                                   plate=exposure['plateid'],
+                                   expno=exposure['expno'])
+        outfile = os.path.join(plotdir,
+                               "seeing-{template}".format(template=template))
+        lcoqa.plot.seeing(outfile, exposure=exposure, gcam=gcam)
+        outfile = os.path.join(plotdir,
+                               "guider-rms-{template}".format(template=template))
+        lcoqa.plot.guider_rms(outfile, exposure=exposure, gcam=gcam)

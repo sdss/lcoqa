@@ -1,0 +1,116 @@
+#!/usr/bin/env python
+
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
+
+# Create html file summarizing APOGEEQA
+
+import numpy as np
+import fitsio
+import argparse
+import lcoqa
+import os
+import sys
+import glob
+
+
+summary_dtype = [('raCen', np.dtype(np.float64), 1),
+                 ('decCen', np.dtype(np.float64), 1),
+                 ('expno', np.dtype(np.int32), 1),
+                 ('expfile', np.dtype(np.str_), 200),
+                 ('name', np.dtype(np.str_), 200),
+                 ('imagetyp', np.dtype(np.str_), 8),
+                 ('date-obs', np.dtype(np.str_), 21),
+                 ('exptime', np.dtype(np.float32), 1),
+                 ('lst', np.dtype(np.float32), 1),
+                 ('ha', np.dtype(np.float32), 1),
+                 ('programname', np.dtype(np.str_), 200),
+                 ('ha_design', np.dtype(np.float32), 1),
+                 ('ha_observable_min', np.dtype(np.float32), 1),
+                 ('ha_observable_max', np.dtype(np.float32), 1),
+                 ('pa', np.dtype(np.float32), 1),
+                 ('plateid', np.dtype(np.int32), 1),
+                 ('dithpix', np.dtype(np.int32), 1),
+                 ('seeing_median', np.dtype(np.float32), 1),
+                 ('fwhm_median_median', np.dtype(np.float32), 1),
+                 ('guider_rms_median', np.dtype(np.float32), 1),
+                 ('gdrms_median', np.dtype(np.float32), 1),
+                 ('gstart', np.dtype(np.int32), 1),
+                 ('gend', np.dtype(np.int32), 1),
+                 ('mjd_start', np.dtype(np.float64), 1),
+                 ('mjd_end', np.dtype(np.float64), 1),
+                 ('mjd_mid', np.dtype(np.float64), 1),
+                 ('mjd', np.dtype(np.int32), 1),
+                 ('good_conditions', np.dtype(np.int32), 1),
+                 ('mediansky', np.dtype(np.float32), 1),
+                 ('sn2ref', np.dtype(np.float32), 1),
+                 ('signalref', np.dtype(np.float32), 1)]
+
+
+def copy_array(in_array=None, out_array=None):
+    for name in out_array.dtype.names:
+        if name in in_array.dtype.names:
+            out_array[name] = in_array[name]
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Pull together all lcoqa information into single file.",
+                                     usage="lcoqa_summary")
+    parser.add_argument("-t", "--telescope", type=str,
+                        required=True,
+                        help="telescope guider images to process",
+                        choices=['lco', 'apo'])
+    args = parser.parse_args()
+
+    fitsdir = os.path.join(os.getenv('APOGEEQA_DATA'), args.telescope)
+
+    exposureglob = os.path.join(fitsdir, '[0-9][0-9][0-9][0-9][0-9]',
+                                'exposures-*.fits')
+    exposurefiles = glob.glob(exposureglob)
+
+    summary = np.zeros(0, dtype=summary_dtype)
+    for exposurefile in exposurefiles:
+        try:
+            exposures = fitsio.read(exposurefile)
+        except IOError:
+            print("No data in {exposurefile}".format(exposurefile=exposurefile))
+        tmp_summary = np.zeros(len(exposures), dtype=summary_dtype)
+        copy_array(in_array=exposures, out_array=tmp_summary)
+        for curr_summary in tmp_summary:
+            sigdir = os.path.join(os.getenv('APOGEEQA_DATA'), args.telescope,
+                                  str(curr_summary['mjd']))
+            sigbase = 'signal-{mjd}-{expno}.fits'
+            sigbase = sigbase.format(mjd=curr_summary['mjd'],
+                                     expno=curr_summary['expno'])
+            sigfile = os.path.join(sigdir, sigbase)
+            if(os.path.isfile(sigfile)):
+                try:
+                    curr_signal = fitsio.read(sigfile, ext=1)
+                    copy_array(in_array=curr_signal, out_array=curr_summary)
+                except IOError:
+                    print("No data in {sigfile}".format(sigfile=sigfile))
+        summary = np.append(summary, tmp_summary)
+
+    bad_expno = [np.int32(23540064)]
+    good_programnames = ['halo', 'bulge', 'disk1', 'disk2']
+    good_expno = np.zeros(len(summary), dtype=np.int32)
+    good_programname = np.zeros(len(summary), dtype=np.int32)
+    for indx in np.arange(len(summary)):
+        good_expno[indx] = summary['expno'][indx] not in bad_expno
+        good_programname[indx] = (summary['programname'][indx].strip() in
+                                  good_programnames)
+    igd = np.where((summary['mjd'] > 57844) &
+                   (good_expno > 0) &
+                   (summary['imagetyp'] == 'Object  ') &
+                   (summary['seeing_median'] > 0.5) &
+                   (summary['seeing_median'] < 1.5) &
+                   (summary['sn2ref'] != 0.) &
+                   (good_programname > 0) &
+                   (np.abs(summary['ha_design']) <= 30.) &
+                   (summary['ha'] > summary['ha_observable_min'] + 7.5) &
+                   (summary['ha'] < summary['ha_observable_max'] - 7.5))[0]
+    summary['good_conditions'][igd] = 1
+
+    fitsio.write(os.path.join(fitsdir, 'apogee-summary.fits'),
+                 summary, clobber=True)

@@ -1,0 +1,79 @@
+#!/usr/bin/env python
+
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
+
+import numpy as np
+import fitsio
+import argparse
+import lcoqa
+import os
+import sys
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Make signal QA plots",
+                                     usage="lcoqa_html --mjd 12345 --telescope lco")
+    parser.add_argument("-t", "--telescope", type=str,
+                        required=True,
+                        help="telescope guider images to process",
+                        choices=['lco', 'apo'])
+    args = parser.parse_args()
+
+    fitsdir = os.path.join(os.getenv('APOGEEQA_DATA'), args.telescope)
+
+    summaryfile = os.path.join(fitsdir, 'apogee-summary.fits')
+    summary = fitsio.read(summaryfile)
+    igd = np.where(summary['good_conditions'])[0]
+
+    htmldir = os.path.join(os.getenv('APOGEEQA_DATA'), args.telescope)
+    try:
+        os.makedirs(htmldir)
+    except OSError:
+        if not os.path.isdir(htmldir):
+            raise
+
+    htmlfile = os.path.join(htmldir, 'lcoqa-summary-good.html')
+
+    allplot = 'lcoqa-summary.png'
+    outfile = os.path.join(htmldir, allplot)
+    lcoqa.plot.signal_summary(outfile=outfile, summary=summary,
+                                 title='All conditions')
+    allgdrmsplot = 'lcoqa-summary-gdrms.png'
+    outfile = os.path.join(htmldir, allgdrmsplot)
+    lcoqa.plot.signal_summary_gdrms(outfile=outfile, summary=summary,
+                                       title='All conditions')
+
+    goodplot = 'lcoqa-summary-good.png'
+    outfile = os.path.join(htmldir, goodplot)
+    lcoqa.plot.signal_summary(outfile=outfile, summary=summary[igd],
+                                 title='Good conditions')
+    goodgdrmsplot = 'lcoqa-summary-gdrms-good.png'
+    outfile = os.path.join(htmldir, goodgdrmsplot)
+    lcoqa.plot.signal_summary_gdrms(outfile=outfile,
+                                       summary=summary[igd],
+                                       title='Good conditions')
+
+    html = lcoqa.html.Summary(htmlfile=htmlfile, mjd=None)
+
+    isort = igd[np.argsort(summary['expno'][igd])]
+    for curr_summary in summary[isort]:
+        html.add_exposure(curr_summary)
+
+    front = """
+<table>
+ <tr>
+  <td><a href="{allplot}"><img src="{allplot}" width=400px /></a></td>
+  <td><a href="{allgdrmsplot}"><img src="{allgdrmsplot}" width=400px /></a></td>
+ </tr>
+ <tr>
+  <td><a href="{goodplot}"><img src="{goodplot}" width=400px /></a></td>
+  <td><a href="{goodgdrmsplot}"><img src="{goodgdrmsplot}" width=400px /></a></td>
+ </tr>
+</table>
+""".format(allplot=allplot, allgdrmsplot=allgdrmsplot,
+           goodplot=goodplot, goodgdrmsplot=goodgdrmsplot)
+    html.body_text = front + html.body_text
+
+    html.write()
