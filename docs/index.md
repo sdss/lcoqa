@@ -13,14 +13,14 @@ Data from lcoqa is stored in a directory set by $LCOQA_DATA. The basic
 structure is:
 
 * $LCOQA_DATA/
- * [telescope]/
+ - [telescope]/
   * apogee-summary.fits - list of all exposures
   * apogeeqa-summary-good.html - QA plots of all "good conditions" exposures
   * apogeeqa-summary-[mjd].html - 
   * [MJD]/
-   * gcam-[MJD].fits - summary file of all processed guider images
-   * exposures-[MJD].fits - summary file of all science exposures
-   * signal-[MJD]-[expno].fits 
+   - gcam-[MJD].fits - summary file of all processed guider images
+   - exposures-[MJD].fits - summary file of all science exposures
+   - signal-[MJD]-[expno].fits 
     * HDU1 - summary information on this exposure
     * HDU2 - information for each fiber used for summary information
   * plots/ - QA plots
