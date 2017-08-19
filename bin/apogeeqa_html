@@ -4,7 +4,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
-# Create html file summarizing APOGEEQA
+# Create html file summarizing LCOQA
 
 import numpy as np
 import fitsio
@@ -25,7 +25,7 @@ if __name__ == "__main__":
                         choices=['lco', 'apo'])
     args = parser.parse_args()
 
-    fitsdir = os.path.join(os.getenv('APOGEEQA_DATA'), args.telescope,
+    fitsdir = os.path.join(os.getenv('LCOQA_DATA'), args.telescope,
                            str(args.mjd))
 
     exposurefile = os.path.join(fitsdir,
@@ -36,7 +36,7 @@ if __name__ == "__main__":
         print("No exposures file. Cannot make HTML without data.")
         sys.exit(1)
 
-    htmldir = os.path.join(os.getenv('APOGEEQA_DATA'), args.telescope)
+    htmldir = os.path.join(os.getenv('LCOQA_DATA'), args.telescope)
     try:
         os.makedirs(htmldir)
     except OSError:

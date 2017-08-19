@@ -21,13 +21,13 @@ if __name__ == "__main__":
                         choices=['lco', 'apo'])
     args = parser.parse_args()
 
-    fitsdir = os.path.join(os.getenv('APOGEEQA_DATA'), args.telescope)
+    fitsdir = os.path.join(os.getenv('LCOQA_DATA'), args.telescope)
 
     summaryfile = os.path.join(fitsdir, 'apogee-summary.fits')
     summary = fitsio.read(summaryfile)
     igd = np.where(summary['good_conditions'])[0]
 
-    htmldir = os.path.join(os.getenv('APOGEEQA_DATA'), args.telescope)
+    htmldir = os.path.join(os.getenv('LCOQA_DATA'), args.telescope)
     try:
         os.makedirs(htmldir)
     except OSError:

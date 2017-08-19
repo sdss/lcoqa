@@ -25,7 +25,7 @@ if __name__ == "__main__":
                         choices=['lco', 'apo'])
     args = parser.parse_args()
 
-    fitsdir = os.path.join(os.getenv('APOGEEQA_DATA'), args.telescope,
+    fitsdir = os.path.join(os.getenv('LCOQA_DATA'), args.telescope,
                            str(args.mjd))
     try:
         os.makedirs(fitsdir)
