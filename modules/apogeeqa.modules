@@ -7,8 +7,8 @@ proc ModulesHelp { } {
 #
 # Define variables
 #
-set product apogeeqa 
-set version local
+set product lcoqa 
+set version trunk
 #
 # This prevents other versions of this product being loaded simultaneously
 #
@@ -26,8 +26,8 @@ module load sdss_access
 # Set environment
 #
 set PRODUCT_DIR /uufs/chpc.utah.edu/common/home/u0919333/products/$product/$version
-setenv APOGEEQA_DIR $PRODUCT_DIR
-setenv APOGEEQA_DATA /uufs/chpc.utah.edu/common/home/u0919333/projects/apogeeqa
+setenv LCOQA_DIR $PRODUCT_DIR
+setenv LCOQA_DATA /uufs/chpc.utah.edu/common/home/u0919333/projects/lcoqa
 prepend-path PATH $PRODUCT_DIR/bin
 prepend-path IDL_PATH +$PRODUCT_DIR/pro
 prepend-path PYTHONPATH $PRODUCT_DIR/python
