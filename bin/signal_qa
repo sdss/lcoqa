@@ -11,6 +11,7 @@ import fitsio
 import argparse
 import lcoqa
 import os
+import sys
 
 
 if __name__ == "__main__":
@@ -34,7 +35,11 @@ if __name__ == "__main__":
 
     expfile = os.path.join(outdir,
                            'exposures-{mjd}.fits'.format(mjd=args.mjd))
-    exposures = fitsio.read(expfile)
+    try:
+        exposures = fitsio.read(expfile)
+    except:
+        print("No exposure file for: {mjd}".format(mjd=args.mjd))
+        sys.exit(1)
 
     for exposure in exposures:
         signal, signal_fibers = lcoqa.signal(exposure=exposure)

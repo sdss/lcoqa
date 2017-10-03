@@ -42,7 +42,7 @@ if __name__ == "__main__":
         sys.exit()
 
     exposures = lcoqa.exposures(gcam=gcam,
-                                   mjd=args.mjd, telescope=args.telescope)
+                                mjd=args.mjd, telescope=args.telescope)
 
     if(exposures is not None):
         outfile = os.path.join(outdir,
