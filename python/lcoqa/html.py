@@ -3,6 +3,26 @@ import astropy.time as time
 
 
 class Summary(object):
+    """Object for writing HTML summary web pge
+
+    Attributes:
+    ----------
+    mjd : np.int32, int
+      integer MJD
+    htmlfile : 
+    body_text : 
+    header_text : 
+    framework : 
+
+    Methods:
+    -------
+    add_framework : 
+    add_exposure : 
+    add_exposure_table : 
+    write : 
+    _cell_plot : 
+
+    """
     def __init__(self, mjd=None, htmlfile=None):
         self.header_text = ""
         if(mjd is not None):

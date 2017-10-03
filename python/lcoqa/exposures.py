@@ -16,6 +16,20 @@ spath = sdss_access.path.Path()
 
 def parangle(ha=None, dec=None, lat=-29.0):
     """Return parallactic angle of observation
+
+    Parameters
+    ----------
+    ha : np.float32
+      hour angle of observation (deg)
+    dec : np.float32
+      declination of observation (deg)
+    lat : np.float32
+      latitude of observatory (deg)
+
+    Returns:
+    -------
+    pa : np.float32
+      parallactic angle (deg East of North)
     """
     r2d = 180. / np.pi
     d2r = np.pi / 180.
@@ -26,6 +40,34 @@ def parangle(ha=None, dec=None, lat=-29.0):
 
 
 def exposures(mjd=None, telescope=None, gcam=None):
+    """Gather exposure information from ap1D or as1D files
+
+    Parameters
+    ----------
+    mjd : np.int32, or int
+      MJD of observation
+    telescope : string
+      telescope of observations ('apo' or 'lco')
+    gcam : ndarray
+      structured array of guider camera summary for MJD
+
+    Returns:
+    -------
+    exposures : ndarray
+      structured array of science exposures for MJD
+
+    Comments:
+    --------
+
+    Calculates some basic information from the processed guide images;
+      guider_rms_median : median guideRMS value (calculated)
+      gdrms_median  : median guideRMS value (from proc-gimg headers)
+      gstart  : first guider image
+      gend  : last guider image
+      seeing_median  : median seeing value
+      fwhm_median_median : median in-focus guide FWHM, median over exposure
+
+    """
 
     # Set location based on telescope
     if(telescope == 'apo'):
