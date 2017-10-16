@@ -102,7 +102,7 @@ def load_image(image, db, header=True, bintable=True):
     header = astropy.io.fits.getheader(image_path, 0)
 
     if header['IMAGETYP'] == 'dark':
-        bintable = None:
+        bintable = None
     else:
         bintable = astropy.table.Table.read(image_path)
 
