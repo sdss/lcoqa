@@ -11,6 +11,14 @@ signalrange = 0.125
 
 
 class Expected(object):
+    """Expected signal given seeing
+
+    Attributes
+    ----------
+    signal : interpolate.interpolate.interp1d instance
+      function returning expected signal given FWHM seeing, arcsec)
+
+    """
     def __init__(self):
         coeffs = np.array([0.16691948, -0.12886663, -0.15449739, 0.30526956, -0.41347824, 0.41610774])
         deg = 5
@@ -39,6 +47,17 @@ def _title(exposure=None):
 
 
 def seeing(outfile=None, gcam=None, exposure=None):
+    """Plot seeing during an exposure
+
+    Parameters
+    ----------
+    outfile : string
+      file name to save figure to
+    exposure : ndarray
+      structured array of for this science exposure
+    gcam : ndarray
+      structured array of guider camera summary for MJD
+    """
     indx = np.where((gcam['indx'] >= exposure['gstart']) &
                     (gcam['indx'] <= exposure['gend']))[0]
     plt.plot(gcam['indx'][indx], gcam['seeing'][indx], label='seeing')
@@ -55,6 +74,17 @@ def seeing(outfile=None, gcam=None, exposure=None):
 
 
 def guider_rms(outfile=None, gcam=None, exposure=None):
+    """Plot guider RMS during an exposure
+
+    Parameters
+    ----------
+    outfile : string
+      file name to save figure to
+    exposure : ndarray
+      structured array of for this science exposure
+    gcam : ndarray
+      structured array of guider camera summary for MJD
+    """
     indx = np.where((gcam['indx'] >= exposure['gstart']) &
                     (gcam['indx'] <= exposure['gend']))[0]
     plt.plot(gcam['indx'][indx], gcam['gdrms'][indx])
@@ -70,6 +100,19 @@ def guider_rms(outfile=None, gcam=None, exposure=None):
 
 def signal(outfile=None, exposure=None, signal=None,
            signal_fibers=None):
+    """Plot signal vs. H magnitude
+
+    Parameters
+    ----------
+    outfile : string
+      file name to save figure to
+    exposure : ndarray
+      structured array of for this science exposure
+    signal : ndarray
+      structured array of signal information for this exposure
+    signal_fibers : ndarray
+      structured array of signal information for fibers in this exposure
+    """
     cm = plt.cm.get_cmap('RdYlBu')
     isort = np.argsort(signal_fibers['tmass_h'])
     rf = np.sqrt(signal_fibers['xfocal']**2 + signal_fibers['yfocal']**2)
@@ -97,6 +140,19 @@ def signal(outfile=None, exposure=None, signal=None,
 
 
 def sn2(outfile=None, exposure=None, signal=None, signal_fibers=None):
+    """Plot signal-to-noise ratio vs. H magnitude
+
+    Parameters
+    ----------
+    outfile : string
+      file name to save figure to
+    exposure : ndarray
+      structured array of for this science exposure
+    signal : ndarray
+      structured array of signal information for this exposure
+    signal_fibers : ndarray
+      structured array of signal information for fibers in this exposure
+    """
     cm = plt.cm.get_cmap('RdYlBu')
     isort = np.argsort(signal_fibers['tmass_h'])
     rf = np.sqrt(signal_fibers['xfocal']**2 + signal_fibers['yfocal']**2)
@@ -124,6 +180,19 @@ def sn2(outfile=None, exposure=None, signal=None, signal_fibers=None):
 
 def signal_focal(outfile=None, exposure=None, signal=None,
                  signal_fibers=None):
+    """Plot signal vs. focal plane location
+
+    Parameters
+    ----------
+    outfile : string
+      file name to save figure to
+    exposure : ndarray
+      structured array of for this science exposure
+    signal : ndarray
+      structured array of signal information for this exposure
+    signal_fibers : ndarray
+      structured array of signal information for fibers in this exposure
+    """
     cm = plt.cm.get_cmap('RdYlBu')
     diff = (np.log10(signal_fibers['signal']) -
             np.log10(signal_fibers['signal_model']))
@@ -147,6 +216,19 @@ def signal_focal(outfile=None, exposure=None, signal=None,
 
 def sn2_focal(outfile=None, exposure=None, signal=None,
               signal_fibers=None):
+    """Plot signal-to-noise ratio vs. focal plane location
+
+    Parameters
+    ----------
+    outfile : string
+      file name to save figure to
+    exposure : ndarray
+      structured array of for this science exposure
+    signal : ndarray
+      structured array of signal information for this exposure
+    signal_fibers : ndarray
+      structured array of signal information for fibers in this exposure
+    """
     cm = plt.cm.get_cmap('RdYlBu')
     diff = (np.log10(signal_fibers['sn2']) -
             np.log10(signal_fibers['sn2_model']))
@@ -169,6 +251,17 @@ def sn2_focal(outfile=None, exposure=None, signal=None,
 
 
 def signal_summary(outfile=None, summary=None, title=None):
+    """Plot signal summary vs seeing
+
+    Parameters
+    ----------
+    outfile : string
+      file name to save figure to
+    summary : ndarray
+      structured array with summary information for exposures
+    title : string
+      title for plot
+    """
     nfwhm = 200
     fwhm = 0.1 + 3. * (np.arange(nfwhm) / np.float32(nfwhm - 1))
     signal = expected.signal(fwhm)
@@ -189,6 +282,17 @@ def signal_summary(outfile=None, summary=None, title=None):
 
 
 def signal_summary_gdrms(outfile=None, summary=None, title=None):
+    """Plot signal summary vs guide RMS
+
+    Parameters
+    ----------
+    outfile : string
+      file name to save figure to
+    summary : ndarray
+      structured array with summary information for exposures
+    title : string
+      title for plot
+    """
     signal = expected.signal(summary['fwhm_median_median'])
     cm = plt.cm.get_cmap('RdYlBu')
     diff = summary['signalref'] / signal
@@ -203,4 +307,3 @@ def signal_summary_gdrms(outfile=None, summary=None, title=None):
     plt.title(title)
     plt.savefig(outfile)
     plt.clf()
-
