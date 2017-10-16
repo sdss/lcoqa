@@ -127,7 +127,8 @@ def load_image(image, db, header=True, bintable=True):
     frame_dbo, __ = Frame.get_or_create(frame=frame, mjd=mjd, processed=True)
 
     # Adds new columns to Header
-    header_values = {key.lower().replace('-', '_'): header[key] for key in header}
+    header_values = {key.lower().replace('-', '_'): header[key]
+                     for key in header if key.lower() != 'comment'}
     add_columns(database, 'header', header_values)
 
     # Gets the new header model from reflection
