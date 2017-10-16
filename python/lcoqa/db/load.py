@@ -100,12 +100,7 @@ def load_image(image, db, header=True, bintable=True):
     assert 'proc-gimg' in image_path.name, 'not a proc-gimg image.'
 
     header = astropy.io.fits.getheader(image_path, 0)
-
-    try:
-        bintable = astropy.table.Table.read(image_path)
-    except ValueError:
-        print('cannot read bintable for {}'.format(str(image)))
-        return
+    bintable = astropy.table.Table.read(image_path)
 
     # Makes sure the DB the models are linked to is pointing to the right DB.
 
@@ -143,7 +138,11 @@ def load_image(image, db, header=True, bintable=True):
     with database.atomic():
         header_dbo = full_header_model.get_or_create(frame_pk=frame_dbo.pk, extension=0)[0]
         header_blob = bytes(header.tostring(), 'utf-8')
-        header_dbo.update(header_blob=header_blob, **header_values).execute()
+        try:
+            header_dbo.update(header_blob=header_blob, **header_values).execute()
+        except ValueError as ee:
+            print('cannot insert header for {}: {}'.format(str(image), ee))
+            return False
 
     # Loads the bintable
     db_cols = database.get_columns('bintable')
@@ -187,5 +186,8 @@ def dbload(images, dbpath, recursive=False):
 
     with ProgressBar(len(paths)) as bar:
         for path in paths:
-            load_image(path, dbpath)
+            try:
+                load_image(path, dbpath)
+            except Exception as ee:
+                print('failed loading file {}: {}'.format(str(path), ee))
             bar.update()
