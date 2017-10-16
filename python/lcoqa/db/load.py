@@ -183,7 +183,7 @@ def dbload(images, dbpath, recursive=False):
             paths.append(image_path)
 
     with ProgressBar(len(paths)) as bar:
-        for path in paths:
+        for path in sorted(paths):
             try:
                 load_image(path, dbpath)
             except Exception as ee:
