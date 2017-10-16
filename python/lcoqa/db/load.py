@@ -138,11 +138,9 @@ def load_image(image, db, header=True, bintable=True):
     with database.atomic():
         header_dbo = full_header_model.get_or_create(frame_pk=frame_dbo.pk, extension=0)[0]
         header_blob = bytes(header.tostring(), 'utf-8')
-        try:
-            header_dbo.update(header_blob=header_blob, **header_values).execute()
-        except ValueError as ee:
-            print('cannot insert header for {}: {}'.format(str(image), ee))
-            return False
+        full_header_model.update(header_blob=header_blob,
+                                 **header_values).where(
+                                     full_header_model.pk == header_dbo.pk).execute()
 
     # Loads the bintable
     db_cols = database.get_columns('bintable')
