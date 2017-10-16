@@ -100,7 +100,12 @@ def load_image(image, db, header=True, bintable=True):
     assert 'proc-gimg' in image_path.name, 'not a proc-gimg image.'
 
     header = astropy.io.fits.getheader(image_path, 0)
-    bintable = astropy.table.Table.read(image_path)
+
+    try:
+        bintable = astropy.table.Table.read(image_path)
+    except ValueError:
+        print('cannot read bintable for {}'.format(str(image)))
+        return
 
     # Makes sure the DB the models are linked to is pointing to the right DB.
 
