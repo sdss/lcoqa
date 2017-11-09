@@ -8,6 +8,8 @@ import os
 
 from astropy.io import fits
 
+from fitPlateProfile import DuPontProfile
+
 basePath = os.getenv("LCOQA_DATA")
 
 class ConorQA(object):
@@ -19,6 +21,9 @@ class ConorQA(object):
         self.yPos = yPos
         self.signal = signal
         self.signalModel = signalModel
+        self.prof = DuPontProfile()
+        self.prof.getProfileFromDB(plateID, fscanID, fscanMJD)
+
 
 def getSignal(mjd, expNo):
     sigPath = os.path.join(basePath, "lco" "%i"%mjd, "signal-%i-%i.fits"%(mjd, expNo))
@@ -35,12 +40,15 @@ if __name__ == "__main__":
     cQAList = []
     for row in summaryTable:
         if onlyGood and not row["good_conditions"]:
+            print("skipping %s, bad conditions"%row["name"])
             continue
+        print("scraping up %s"%row["name"])
         plateID, fscanMJD, fscanID = [int(x) for x in row["name"].split("-")]
         expNum = row["expno"]
         expMJD = row["mjd"]
         sigTable = getSignal(expMJD, expNum)
         if sigTable is None:
+            print("no signal table for %s, skipping"%row["name"])
             continue
         xPos = sigTable["xFocal"]
         yPos = sigTable["yFocal"]
