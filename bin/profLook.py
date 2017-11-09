@@ -5,6 +5,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 import os
+import numpy
 
 from astropy.io import fits
 
@@ -23,6 +24,16 @@ class ConorQA(object):
         self.signalModel = signalModel
         self.prof = DuPontProfile()
         self.prof.getProfileFromDB(plateID, fscanID, fscanMJD)
+        self.zeroPoint = numpy.log10(self.signal) - numpy.log10(self.signalModel)
+        self.zeroPointRMS = self.rms(self.zeroPoint)
+        self.profErrArray = numpy.array([self.prof.getErr(x,y) for x,y in zip(self.xPos,self.yPos)])
+        self.profErrRMS = self.rms(self.profErrArray)
+
+
+    def rms(self, array):
+        return numpy.sqrt(numpy.sum(array**2)/len(array))
+
+
 
 
 def getSignal(mjd, expNo):
