@@ -26,8 +26,9 @@ class ConorQA(object):
 
 
 def getSignal(mjd, expNo):
-    sigPath = os.path.join(basePath, "lco" "%i"%mjd, "signal-%i-%i.fits"%(mjd, expNo))
+    sigPath = os.path.join(basePath, "lco", "%i"%mjd, "signal-%i-%i.fits"%(mjd, expNo))
     if not os.path.exists(sigPath):
+        print("doesn't exist", sigPath)
         return None
     sigTable = fits.open(sigPath)[-1].data
     return sigTable
@@ -54,4 +55,10 @@ if __name__ == "__main__":
         yPos = sigTable["yFocal"]
         signal = sigTable["signal"]
         signal_model = sigTable["signal_model"]
-        cQAList.append(ConorQA(plateID, fscanMJD, fscanID, xPos, yPos, signal, signal_model))
+        try:
+           cQA = ConorQA(plateID, fscanMJD, fscanID, xPos, yPos, signal, signal_model)
+        except RuntimeError:
+            print("failed to get profile for %s, skipping"%row["name"])
+            continue
+        cQAList.append(cQA)
+    import pdb; pdb.set_trace()
