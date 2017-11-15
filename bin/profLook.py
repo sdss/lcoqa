@@ -14,10 +14,12 @@ from fitPlateProfile import DuPontProfile
 basePath = os.getenv("LCOQA_DATA")
 
 class ConorQA(object):
-    def __init__(self, plateID, fscanMJD, fscanID, xPos, yPos, signal, signalModel):
+    def __init__(self, plateID, fscanMJD, fscanID, expMJD, expNum, xPos, yPos, signal, signalModel):
         self.plateID = plateID
         self.fscanMJD = fscanMJD
         self.fscanID = fscanID
+        self.expMJD = expMJD
+        self.expNum = expNum
         self.xPos = xPos
         self.yPos = yPos
         self.signal = signal
@@ -67,9 +69,17 @@ if __name__ == "__main__":
         signal = sigTable["signal"]
         signal_model = sigTable["signal_model"]
         try:
-           cQA = ConorQA(plateID, fscanMJD, fscanID, xPos, yPos, signal, signal_model)
+           cQA = ConorQA(plateID, fscanMJD, fscanID, expMJD, expNum, xPos, yPos, signal, signal_model)
         except RuntimeError:
             print("failed to get profile for %s, skipping"%row["name"])
             continue
         cQAList.append(cQA)
-    import pdb; pdb.set_trace()
+    cQAList.sort(key=lambda x: x.zeroPointRMS)
+    with open("profRMS.txt", "w") as f:
+        f.write("PlateID, ExpMJD, ExpNum, FscanMJD, FscanID, ZeroPointRMS, ProfErrRMS\n")
+        for cQA in cQAList:
+            f.write("%i, %i, %i, %i, %i, %.4f, %.4f\n"%(cQA.plateID, cQA.expMJD, cQA.expNum, cQA.fscanMJD, cQA.fscanID, cQA.zeroPointRMS, cQA.profErrRMS))
+      
+
+
+
