@@ -49,7 +49,7 @@ def getSignal(mjd, expNo):
 
 if __name__ == "__main__":
 
-    onlyGood = True
+    onlyGood = False
     summaryTable = fits.open(os.path.join(basePath, "lco/apogee-summary.fits"))[-1].data
     cQAList = []
     for row in summaryTable:
@@ -76,9 +76,9 @@ if __name__ == "__main__":
         cQAList.append(cQA)
     cQAList.sort(key=lambda x: x.zeroPointRMS)
     with open("profRMS.txt", "w") as f:
-        f.write("PlateID, ExpMJD, ExpNum, FscanMJD, FscanID, ZeroPointRMS, ProfErrRMS\n")
+        f.write("PlateID ExpMJD ExpNum FscanMJD FscanID ZeroPointRMS ProfErrRMS ProfPercent\n")
         for cQA in cQAList:
-            f.write("%i, %i, %i, %i, %i, %.4f, %.4f\n"%(cQA.plateID, cQA.expMJD, cQA.expNum, cQA.fscanMJD, cQA.fscanID, cQA.zeroPointRMS, cQA.profErrRMS))
+            f.write("%i %i %i %i %i %.4f %.4f %.4f\n"%(cQA.plateID, cQA.expMJD, cQA.expNum, cQA.fscanMJD, cQA.fscanID, cQA.zeroPointRMS, cQA.profErrRMS, cQA.prof.percentInSpec))
       
 
 
