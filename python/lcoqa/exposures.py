@@ -88,7 +88,7 @@ def exposures(mjd=None, telescope=None, gcam=None):
     plans = yanny.yanny(plist)['PLATEPLANS']
 
     # Find list of exposures to analyze
-    ap1ddir = os.path.dirname(spath.full('ap1D', apred='apogee2',
+    ap1ddir = os.path.dirname(spath.full('ap1D', apred='current',
                                          prefix=prefix,
                                          instrument=instrument,
                                          chip='a', mjd=mjd, num=0))
