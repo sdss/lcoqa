@@ -87,7 +87,12 @@ def guider_rms(outfile=None, gcam=None, exposure=None):
     """
     indx = np.where((gcam['indx'] >= exposure['gstart']) &
                     (gcam['indx'] <= exposure['gend']))[0]
-    plt.plot(gcam['indx'][indx], gcam['gdrms'][indx])
+    iled = np.where(gcam['enabled'][indx, 16] == True)[0]
+    if(len(iled) > 0.5 * len(indx)):
+        label = 'LED enabled'
+    else:
+        label = 'LED not enabled'
+    plt.plot(gcam['indx'][indx], gcam['gdrms'][indx], label=label)
     plt.xlim((gcam['indx'][indx].min() - 3, gcam['indx'][indx].max() + 3))
     plt.ylim((0., 1.5))
     plt.xlabel('Guide camera file number')

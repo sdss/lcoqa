@@ -1,5 +1,8 @@
 import os
 import astropy.time as time
+import sdss_access
+
+spath = sdss_access.path.Path()
 
 
 class Summary(object):
@@ -72,9 +75,15 @@ class Summary(object):
     def add_exposure(self, exposure=None):
         plotdir = os.path.join(str(exposure['mjd']), 'plots')
         row = "<tr>"
-        row += "<td><b>PLATE={plate}</b><br/>".format(plate=exposure['plateid'])
+        os.environ['PLATELIST_DIR'] = "http://platedesign.sdss.org"
+        plink = os.path.dirname(spath.full('plateHoles',
+                                           plateid=exposure['plateid']))
+        row += "<td><a href={plink}><b>PLATE={plate}</b></a><br/>".format(plate=exposure['plateid'], plink=plink)
         row += "EXPOSURE={expno}<br/>".format(expno=exposure['expno'])
+        row += "RA={raCen:>0.3f}<br/>".format(raCen=exposure['raCen'])
+        row += "DEC={decCen:>0.3f}<br/>".format(decCen=exposure['decCen'])
         row += "MJD={mjd}<br/>".format(mjd=exposure['mjd'])
+        row += "CART={cart}<br/>".format(cart=exposure['cartid'])
         row += "DATE={dateobs}<br/>".format(dateobs=exposure['date-obs'])
         row += "HA={ha:>0.2f}<br/>".format(ha=exposure['ha'])
         row += "HA_DESIGN={ha_design:>0.2f}<br/>".format(ha_design=exposure['ha_design'])

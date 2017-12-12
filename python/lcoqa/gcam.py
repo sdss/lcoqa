@@ -57,6 +57,7 @@ def gcam(mjd=None, telescope=None):
                    ('indx', np.dtype(np.int32), 1),
                    ('date-obs', np.dtype(np.str_), 21),
                    ('mjd', np.dtype(np.float64), 1),
+                   ('enabled', np.dtype(np.int32), 17),
                    ('ra', np.dtype(np.float64), 17),
                    ('dec', np.dtype(np.float64), 17),
                    ('xFocal', np.dtype(np.float32), 17),

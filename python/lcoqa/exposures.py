@@ -103,6 +103,7 @@ def exposures(mjd=None, telescope=None, gcam=None):
                ('decCen', np.dtype(np.float64), 1),
                ('expno', np.dtype(np.int32), 1),
                ('expfile', np.dtype(np.str_), 200),
+               ('cartid', np.dtype(np.int32), 1),
                ('name', np.dtype(np.str_), 200),
                ('imagetyp', np.dtype(np.str_), 8),
                ('date-obs', np.dtype(np.str_), 21),
@@ -141,6 +142,7 @@ def exposures(mjd=None, telescope=None, gcam=None):
         exp['name'] = header['NAME']
         exp['date-obs'] = header['DATE-OBS']
         exp['exptime'] = header['EXPTIME']
+        exp['cartid'] = header['CARTID']
         exp['dithpix'] = header['DITHPIX']
         try:
             exp['plateid'] = header['PLATEID']
