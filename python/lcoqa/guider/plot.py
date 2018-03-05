@@ -19,6 +19,8 @@ import pandas as pd
 import seaborn as sns
 
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+
 from scipy import stats
 
 
@@ -63,7 +65,7 @@ def plot_residuals(h5_file, table, compare_table='guider'):
 
     diff = data - compare_data
     if 'mScale' in data and 'mScale' in compare_data:
-        data['mScale'] = data.mScale / compare_data.mScale
+        diff['mScale'] = data.mScale / compare_data.mScale
 
     diff = diff.dropna(how='all', axis=1)
     diff = diff.dropna().drop(columns=['n_points'])
@@ -80,7 +82,10 @@ def plot_residuals(h5_file, table, compare_table='guider'):
     fg = sns.FacetGrid(melted, col='axis', sharey=False, col_wrap=2, hue='serie')
     fg.map(plt.plot, 'dateobs', 'value')
 
-    return diff
+    for ax in fg.axes:
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M'))
+
+    return fg
 
 
 def plot_pos_error(data, x, mode='kde', **kwargs):
